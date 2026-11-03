@@ -3,19 +3,35 @@ import os
 import time
 import requests
 import subprocess
+import ctypes
+import time
 
-def wait_for_process_termination(pid: int, timeout: int = 15):
-    """Wait until app.exe has completely exited to release file locks."""
-    start_time = time.time()
-    while time.time() - start_time < timeout:
-        try:
-            # os.kill with signal 0 checks process existence without killing
-            os.kill(pid, 0)
-            time.sleep(0.5)
-        except OSError:
-            return True
-    return False
+def wait_for_process_termination(pid: int, timeout: int = 15) -> bool:
+    """
+    Waits for a Windows process to terminate using native OS synchronization.
+    Avoids WinError 6 and CPU polling.
+    """
+    SYNCHRONIZE = 0x00100000
+    WAIT_OBJECT_0 = 0x00000000
+    WAIT_TIMEOUT = 0x00000102
 
+    kernel32 = ctypes.windll.kernel32
+
+    # Attempt to open process with synchronization rights
+    process_handle = kernel32.OpenProcess(SYNCHRONIZE, False, pid)
+    
+    # If handle is 0/NULL, the process has already terminated
+    if not process_handle:
+        return True
+
+    try:
+        timeout_ms = int(timeout * 1000)
+        # Blocks until the process closes or timeout expires
+        result = kernel32.WaitForSingleObject(process_handle, timeout_ms)
+        return result == WAIT_OBJECT_0
+    finally:
+        kernel32.CloseHandle(process_handle)
+        
 def main():
     if len(sys.argv) < 4:
         sys.exit(1)
