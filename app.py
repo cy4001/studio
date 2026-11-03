@@ -7,7 +7,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt
 
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 
 # Set your GitHub repository details
 REPO_OWNER = "cy4001"
@@ -51,7 +51,7 @@ class LoginWindow(QWidget):
         layout = QVBoxLayout()
         layout.setSpacing(12)
 
-        title = QLabel(f"Sign In (Build v{__version__})")
+        title = QLabel(f"Sign In (v{__version__})")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title.setStyleSheet("font-size: 16px; font-weight: bold; margin-bottom: 8px;")
         layout.addWidget(title)
